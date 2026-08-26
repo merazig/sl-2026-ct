@@ -62,6 +62,23 @@ def get_nombre_des_valeurs_nulles(table, colonne):
         cursor.execute(query)
         return cursor.fetchone()[0]
 
+def get_nombre_des_doublons(table, colonnes):
+    """Nombre des doublons."""
+    colonnes_sql = ", ".join(colonnes)
+    
+    query = f"""
+            SELECT COUNT(*)
+            FROM (
+                SELECT {colonnes_sql}
+                FROM {table}
+                GROUP BY {colonnes_sql}
+                HAVING COUNT(*) > 1
+            ) AS doublons;
+        """
+    
+    with get_connection() as conn, conn.cursor() as cursor:
+        cursor.execute(query)
+        return cursor.fetchone()[0]
 
 def tables_dict():
     """Les infos des tables qui seront utiisées pour créer un fichier de cartographie."""
@@ -74,4 +91,4 @@ def tables_dict():
     return tables
 
 
-# print(tables_dict())
+ #print(get_nombre_des_doublons("stops", ["stop_name", "stop_lat", "stop_lon", "location_type"]))

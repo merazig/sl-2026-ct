@@ -6,6 +6,8 @@
 
 **Volume :** 7 lignes
 
+**Nombre des doublons :** 0 lignes
+
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
 | `agency_id` | text | NO | 0 |
@@ -18,6 +20,8 @@
 **Rôle :** Définit les jours et la période de circulation des services de transport.
 
 **Volume :** 858 lignes
+
+**Nombre des doublons :** 155 lignes
 
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
@@ -39,6 +43,8 @@
 
 **Volume :** 2603 lignes
 
+**Nombre des doublons :** 55 lignes
+
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
 | `service_id` | text | YES | 0 |
@@ -50,6 +56,8 @@
 **Rôle :** Décrit les lignes ou itinéraires de transport proposés par les agences.
 
 **Volume :** 38 lignes
+
+**Nombre des doublons :** 0 lignes
 
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
@@ -65,6 +73,8 @@
 
 **Volume :** 2219678 lignes
 
+**Nombre des doublons :** 189896 lignes
+
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
 | `trip_id` | text | NO | 0 |
@@ -78,6 +88,8 @@
 **Rôle :** Décrit les arrêts et leurs informations géographiques.
 
 **Volume :** 2396 lignes
+
+**Nombre des doublons :** 25 lignes
 
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
@@ -95,6 +107,8 @@
 
 **Volume :** 3441 lignes
 
+**Nombre des doublons :** 389 lignes
+
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
 | `from_stop_id` | text | YES | 0 |
@@ -108,6 +122,8 @@
 
 **Volume :** 103914 lignes
 
+**Nombre des doublons :** 3555 lignes
+
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
 | `trip_id` | text | NO | 0 |
@@ -115,4 +131,36 @@
 | `service_id` | text | YES | 0 |
 | `trip_headsign` | text | YES | 0 |
 | `direction_id` | smallint | YES | 0 |
+
+
+## Définitions et méthode d'analyse
+
+### Doublon
+
+Dans cette cartographie, un doublon désigne plusieurs lignes ayant les mêmes valeurs 
+pour l'ensemble des colonnes retenues pour l'analyse de la table, indépendamment 
+de leur identifiant.
+
+Un doublon détecté de cette manière constitue un **doublon potentiel** et ne signifie
+pas nécessairement une erreur dans les données. Plusieurs enregistrements présentant 
+les mêmes caractéristiques peuvent être légitimes selon le contexte métier.
+
+### Valeurs NULL
+
+Le nombre de valeurs NULL correspond au nombre de lignes pour lesquelles 
+une colonne ne contient aucune valeur.
+
+Une colonne déclarée comme nullable dans le schéma n'implique pas nécessairement 
+qu'elle contient effectivement des valeurs NULL.
+
+### Valeurs aberrantes
+
+Une valeur est considérée comme aberrante lorsqu'elle semble inhabituelle 
+ou incohérente au regard des règles métier ou du domaine étudié. 
+Une valeur inhabituelle n'est toutefois pas nécessairement invalide.
+
+Dans le cas du GTFS, certaines valeurs peuvent notamment respecter des conventions 
+spécifiques au format. Par exemple, des horaires supérieurs à `24:00:00` 
+peuvent être valides et ne doivent donc pas être considérés automatiquement 
+comme aberrants.
 
