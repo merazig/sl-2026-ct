@@ -91,4 +91,16 @@ def tables_dict():
     return tables
 
 
- #print(get_nombre_des_doublons("stops", ["stop_name", "stop_lat", "stop_lon", "location_type"]))
+def id_check():
+    """Doc."""
+    query = """
+            SELECT
+                COUNT(*) AS total,
+                COUNT(DISTINCT stop_id) AS distinct_ids
+            FROM stops;
+        """
+    with get_connection() as conn, conn.cursor() as cursor:
+            cursor.execute(query)
+            return [row for row in cursor.fetchall()]
+    
+#print(id_check())

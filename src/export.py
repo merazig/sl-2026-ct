@@ -83,7 +83,9 @@ def export_tables_cartoghraphie():
 
             file.write(f"**Volume :** {nb_rows} lignes\n\n")
             
-            nb_doublons = get_nombre_des_doublons(table, columns_names[1:])
+            if table in ("agency", "calendar", "calendar_dates", "stops"):
+                columns_names = columns_names[1:]
+            nb_doublons = get_nombre_des_doublons(table, columns_names)
             file.write(f"**Nombre des doublons :** {nb_doublons} lignes\n\n")
 
             file.write("| Colonne | Type | Nullable | Nb NULL |\n")
@@ -108,3 +110,4 @@ def export_parquet(df, filename):
     """Génère un fichier Parquet."""
     df.to_parquet(filename, index=False)
     
+export_tables_cartoghraphie()

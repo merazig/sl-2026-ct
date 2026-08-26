@@ -73,7 +73,7 @@
 
 **Volume :** 2219678 lignes
 
-**Nombre des doublons :** 189896 lignes
+**Nombre des doublons :** 0 lignes
 
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
@@ -107,7 +107,7 @@
 
 **Volume :** 3441 lignes
 
-**Nombre des doublons :** 389 lignes
+**Nombre des doublons :** 0 lignes
 
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
@@ -122,7 +122,7 @@
 
 **Volume :** 103914 lignes
 
-**Nombre des doublons :** 3555 lignes
+**Nombre des doublons :** 0 lignes
 
 | Colonne | Type | Nullable | Nb NULL |
 |---|---|---|---:|
