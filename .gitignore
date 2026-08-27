@@ -2,3 +2,5 @@ env
 .env
 __pycache__
 .ruff_cache
+data/tram_stops.csv
+data/tram_stops.parquet
