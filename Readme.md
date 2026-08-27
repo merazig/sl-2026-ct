@@ -1,27 +1,60 @@
-# Analyse et cartographie de données GTFS
+# Extraction et documentation de données GTFS
 
-## Description
+## Présentation
 
-Ce projet a pour objectif d'explorer, analyser et documenter une base de données
-issue de données de transport au format GTFS.
+Ce projet a pour objectif d'explorer et de documenter une base de données
+GTFS d'Île-de-France contenant notamment des données relatives au métro,
+au RER et au tram.
 
-L'objectif est dans un premier temps de comprendre la structure de la base,
-d'identifier les différentes tables et leurs colonnes, puis de réaliser quelques
-contrôles de qualité sur les données.
+Le projet suit trois étapes principales :
 
-Le projet permettra notamment de produire :
+1. cartographier la base de données avec du code ;
+2. extraire un jeu de données répondant à un cas d'usage précis ;
+3. documenter et exporter ce jeu de données afin de faciliter sa réutilisation.
 
-- une cartographie des tables de la base ;
-- un dictionnaire de données ;
-- des indicateurs simples de qualité des données ;
-- des jeux de données extraits et exploitables.
+La base de données est une base PostgreSQL hébergée sur Scalingo.
 
----
+## Cas d'usage
+
+Le jeu de données extrait concerne les **arrêts de tram d'Île-de-France**.
+
+Pour chaque arrêt et chaque ligne de tram desservant cet arrêt, le jeu de
+données contient :
+
+- l'identifiant de l'arrêt ;
+- le nom de l'arrêt ;
+- le nom de la ligne ;
+- la latitude ;
+- la longitude.
+
+Une ligne du jeu de données correspond donc à une combinaison **arrêt × ligne
+de tram**. Un même arrêt peut ainsi apparaître plusieurs fois lorsqu'il est
+desservi par plusieurs lignes.
+
+Le filtrage des lignes de tram est effectué à partir de `route_short_name`
+et du préfixe `T`. Les lignes dont le nom commence par `T` sont retenues.
+
+## Source des données
+
+Les données proviennent d'une base PostgreSQL contenant des données au format
+GTFS d'Île-de-France.
+
+La connexion à la base est réalisée à partir de variables d'environnement
+afin de ne pas stocker les informations de connexion dans le code.
+
+Les principales tables utilisées pour l'extraction sont :
+
+- `stops` : informations sur les arrêts et leurs coordonnées ;
+- `stop_times` : association entre les arrêts et les trajets ;
+- `trips` : trajets associés aux lignes ;
+- `routes` : informations sur les lignes de transport.
+
+La cartographie complète des tables de la base est disponible dans
+`doc/cartographie_donnees.md`.
 
 ## Structure du projet
 
 ```text
-.
 ├── main.py
 ├── src/
 │   ├── __init__.py
@@ -31,232 +64,138 @@ Le projet permettra notamment de produire :
 │   └── export.py
 │
 ├── doc/
-│   └── cartographie_donnees.md
+│   ├── cartographie_donnees.md
+│   └── dictionnaire_donnees.md
 │
+├── data/
+│   ├── tram_stops.csv
+│   └── tram_stops.parquet
+│
+├── .env.example
+├── requirements.txt
 └── README.md
+```
+Les fichiers CSV et Parquet du dossier `data/` sont générés par le programme
+et ne sont pas versionnés dans Git.
 
+## Cartographie de la base
+La première étape consiste à explorer automatiquement la base PostgreSQL.
+
+Le programme utilise notamment le `schéma information_schema` afin
+d'identifier les tables, les colonnes et leurs types.
+
+La cartographie contient notamment :
+
+- les tables présentes dans la base ;
+- les colonnes ;
+- les types de données ;
+- la volumétrie ;
+- le nombre de valeurs NULL ;
+- un premier contrôle des doublons ;
+- des constats sur la qualité et les particularités des données.
+Le document généré est disponible dans :
+```
+doc/cartographie_donnees.md
 ```
 
-Description des fichiers
-main.py
-
-Point d'entrée du projet. Il permet d'orchestrer les différentes étapes
-du traitement.
-
-src/connexion.py
-
-Contient les fonctions permettant d'établir une connexion à la base
-de données PostgreSQL.
-
-src/cartographie.py
-
-Contient les fonctions permettant d'explorer la structure de la base de données.
-
-Les informations récupérées comprennent notamment :
-
-les tables ;
-les colonnes ;
-les types de données ;
-la possibilité d'avoir des valeurs NULL ;
-le nombre de lignes par table ;
-certains contrôles de qualité.
-
-Les informations sont récupérées notamment à partir du schéma
-information_schema de PostgreSQL.
-
-src/extraction.py
-
-Contient les requêtes permettant d'extraire des jeux de données spécifiques
-à partir de la base GTFS.
-
-Une première extraction concerne notamment les arrêts de tram, avec :
-
-l'identifiant de l'arrêt ;
-le nom de l'arrêt ;
-la ligne ;
-la latitude ;
-la longitude.
-src/export.py
-
-Contient les fonctions permettant d'exporter les données et les résultats
-du projet dans différents formats.
-
-Les formats envisagés comprennent notamment :
-
-Markdown (.md) ;
-CSV (.csv) ;
-Parquet (.parquet).
-doc/cartographie_donnees.md
-
-Document généré automatiquement contenant la cartographie de la base de données.
-
-Pour chaque table, le document présente notamment :
-
-le volume de la table ;
-les colonnes ;
-les types ;
-la possibilité d'avoir des valeurs NULL ;
-le nombre de valeurs NULL.
-Base de données
-
-La base utilisée est une base PostgreSQL contenant des données de transport
-au format GTFS.
-
-Les principales tables actuellement identifiées sont :
-
-agency
-calendar
-calendar_dates
-routes
-stop_times
-stops
-transfers
-trips
-
-Certaines tables sont particulièrement volumineuses. Par exemple,
-stop_times contient plusieurs millions de lignes.
-
-Premières analyses réalisées
-Cartographie
-
-Une première cartographie automatique de la base a été réalisée à partir
-des catalogues PostgreSQL et du schéma information_schema.
-
-Les informations suivantes sont actuellement récupérées :
-
-nom des tables ;
-nom des colonnes ;
-type des colonnes ;
-caractère nullable des colonnes ;
-nombre de lignes ;
-nombre de valeurs NULL.
-Contrôle des doublons
-
-Des contrôles de doublons potentiels sont également réalisés.
-
-Un doublon potentiel correspond à plusieurs lignes présentant les mêmes
-valeurs pour un ensemble de colonnes choisies pour l'analyse, indépendamment
-de leur identifiant.
-
-Par exemple, pour la table stops, les colonnes suivantes peuvent être
-
-utilisées :
-
-stop_name
-stop_lat
-stop_lon
-
-La présence de plusieurs lignes identiques sur ces colonnes ne signifie
-cependant pas nécessairement une erreur : plusieurs arrêts peuvent avoir
-des caractéristiques identiques ou très proches selon le contexte.
-
-Clés et identifiants
-
-Les colonnes telles que stop_id, trip_id, route_id ou service_id
-constituent des identifiants définis par le format GTFS.
-
-À ce stade, les tables étudiées ne semblent pas disposer de contraintes
-PRIMARY KEY ou FOREIGN KEY déclarées dans PostgreSQL.
-
-L'unicité des identifiants est donc vérifiée directement dans les données
-lorsque cela est nécessaire.
-
-Extraction de données
-
-Une première extraction porte sur les arrêts de tram.
-
-Les informations extraites sont :
-
-stop_id
-stop_name
-route_name
-latitude
-longitude
-
-La sélection des arrêts de tram repose sur route_type = 0, conformément
-à la codification GTFS utilisée.
-
-Les tables stops, stop_times, trips et routes sont utilisées pour
-relier les arrêts aux lignes qui les desservent.
-
-Formats d'export
-
-Les données extraites sont manipulées sous forme de DataFrame Pandas.
-
-CSV
-
-Le format CSV est utilisé pour produire des fichiers facilement consultables
-et réutilisables, notamment avec des tableurs.
-
-Parquet
-
-Le format Parquet est utilisé pour conserver un format adapté à l'analyse
-et au traitement de données.
-
-Il présente notamment l'avantage de conserver les types de données et d'être
-plus efficace que le CSV pour certains traitements sur des volumes importants.
-
-Documentation
-
-La documentation produite par le projet est actuellement organisée autour
-de deux éléments :
-
-Cartographie des données
-
-Elle donne une vue d'ensemble de la structure de la base :
-
-doc/cartographie_donnees.md
-Dictionnaire de données
-
-Un dictionnaire de données sera également développé afin de documenter
-chaque colonne, notamment :
-
-son nom ;
-son type ;
-sa signification ;
-son unité ou domaine de valeurs ;
-sa source ;
-sa date d'extraction.
-
-État actuel du projet
-Réalisé
- Connexion à PostgreSQL
- Identification des tables
- Identification des colonnes et de leurs types
- Comptage du nombre de lignes par table
- Comptage des valeurs NULL
- Premier contrôle des doublons potentiels
- Génération d'une cartographie au format Markdown
- Première extraction de données GTFS
- Préparation des exports CSV et Parquet
-À poursuivre
- Finaliser le dictionnaire de données
- Documenter les domaines de valeurs des colonnes
- Documenter les relations entre les tables
- Approfondir les contrôles de qualité
- Identifier les valeurs aberrantes
- Documenter les particularités du format GTFS
- Finaliser les jeux de données à exporter
- Améliorer et automatiser la génération des rapports
-
-Installation
-
-Les dépendances Python nécessaires sont notamment :
-
-pip install pandas psycopg pyarrow
-
-Selon l'évolution du projet, d'autres dépendances pourront être ajoutées.
-
-Exécution
-
-Le programme principal est lancé depuis la racine du projet :
-
+## Jeu de données extrait
+Le jeu de données est généré à partir d'une requête SQL effectuant les
+jointures nécessaires entre les tables `stops`, `stop_times`, `trips` et
+`routes`.
+
+Les données sont exportées dans deux formats :
+```
+data/tram_stops.csv
+data/tram_stops.parquet
+```
+Le CSV est adapté à la consultation, au partage et à l'utilisation avec
+de nombreux outils.
+
+Le format Parquet est un format colonnaire mieux adapté aux traitements
+analytiques et permet notamment une meilleure compression et une lecture
+efficace des colonnes.
+
+Pour un jeu de données de taille limitée, le CSV peut suffire. Lorsque les
+volumes augmentent ou que les données doivent être utilisées dans des
+traitements analytiques, Parquet devient plus intéressant.
+
+## Dictionnaire de données
+Le dictionnaire de données décrit les colonnes du jeu de données extrait.
+
+Il permet à une personne qui ne connaît pas la base source de comprendre
+et d'utiliser les données sans devoir connaître la structure PostgreSQL
+d'origine.
+
+Pour chaque colonne, le dictionnaire précise notamment :
+
+- son nom ;
+- son type ;
+- son unité ou domaine de valeurs ;
+- sa source ;
+- la date et l'heure d'extraction.
+
+Le dictionnaire est disponible dans :
+```
+doc/dictionnaire_donnees.md
+```
+La date d'extraction permet également d'identifier la fraîcheur du jeu
+de données.
+
+## Installation
+Les dépendances Python sont listées dans `requirements.txt`.
+
+Créer un environnement virtuel puis installer les dépendances :
+```Bash
+python -m venv env
+```
+Activer l'environnement virtuel.
+
+Sous Linux/macOS :
+```Bash
+source env/bin/activate
+```
+Sous Windows :
+```Bash
+env\Scripts\activate
+```
+Installer les dépendances :
+```Bash
+pip install -r requirements.txt
+```
+
+## Configuration
+Les paramètres de connexion à PostgreSQL sont stockés dans des variables
+d'environnement.
+
+Un fichier `.env.example` est fourni comme modèle.
+
+Créer le fichier `.env` à partir de ce modèle et renseigner les informations
+de connexion à la base PostgreSQL.
+
+Le fichier `.env` ne doit pas être versionné.
+
+## Génération des livrables
+Depuis la racine du projet, exécuter :
+```Bash
 python main.py
+```
+Le programme permet de générer les différents livrables du projet,
+notamment le jeu de données extrait en CSV et en Parquet ainsi que sa
+documentation.
 
-Les modules présents dans src/ sont utilisés par main.py.
+Les fichiers générés sont placés dans les dossiers `data/` et `doc/`.
 
-Remarques
+Le jeu de données n'est pas fourni dans le repository afin de permettre
+sa régénération à partir du code et de la base source.
 
-Le projet est actuellement en phase d'exploration et de documentation.
-Le contenu du README, la structure des fichiers et les traitements pourront
-évoluer au fur et à mesure de l'avancement du projet. 
+## Réutilisation
+Le jeu de données peut être utilisé pour différents besoins liés aux
+arrêts de tram en Île-de-France, par exemple :
+
+- analyse géographique des arrêts ;
+- visualisation cartographique ;
+- analyse de la desserte des lignes ;
+- croisement avec d'autres données géographiques ou de transport.
+
+Le dictionnaire de données doit être utilisé conjointement avec les fichiers
+CSV ou Parquet afin d'interpréter correctement les colonnes et leur provenance.
