@@ -5,6 +5,7 @@ from src.connexion import get_connection
 import pandas as pd
 from datetime import datetime
 
+
 def get_arrets_tram():
     """Retourne les arrêts de tram avec leur ligne et leurs coordonnées."""
     query = """
@@ -28,17 +29,17 @@ def get_arrets_tram():
     with get_connection() as conn:
         return pd.read_sql(query, conn)
 
+
 def dataset_to_dict(df):
     """Retourne les informations sur les colonnes du jeu de données."""
     colonnes = []
 
     for column in df.columns:
-        colonnes.append({
-            "name": column,
-            "type": str(df[column].dtype),
-        })
+        colonnes.append(
+            {
+                "name": column,
+                "type": str(df[column].dtype),
+            }
+        )
 
-    return {
-        "colonnes": colonnes,
-        "extracted_at": datetime.now().strftime("%d/%m/%Y à %H:%M:%S")
-    }
+    return {"colonnes": colonnes, "extracted_at": datetime.now().strftime("%d/%m/%Y à %H:%M:%S")}

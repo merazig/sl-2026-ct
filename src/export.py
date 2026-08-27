@@ -1,7 +1,7 @@
 """Export d'un fichier tables.md, un fichier CSV et un fichier Parquet pour le jeux des données."""
 
 from src.cartographie import (
-    #colonnes_to_dict,
+    # colonnes_to_dict,
     get_nombre_des_doublons,
     get_nombre_des_lignes,
     get_nombre_des_valeurs_nulles,
@@ -63,12 +63,7 @@ def colonnes_to_markdown(data):
     lines.append("| Colonne | Type | Unité / domaine de valeurs | Source |")
     lines.append("|---|---|---|---|")
     for colonne in data["colonnes"]:
-        lines.append(
-            f"| `{colonne['name']}` "
-            f"| `{colonne['type']}` "
-            f"| À documenter "
-            f"| À documenter "
-        )
+        lines.append(f"| `{colonne['name']}` | `{colonne['type']}` | À documenter | À documenter ")
 
     return "\n".join(lines)
 
