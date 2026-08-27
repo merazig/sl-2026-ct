@@ -1,7 +1,9 @@
 """Fonctions d'extraction de données depuis la base GTFS."""
+
 from src.connexion import get_connection
 
 import pandas as pd
+
 
 def get_arrets_tram():
     """Retourne les arrêts de tram avec leur ligne et leurs coordonnées."""
@@ -22,7 +24,6 @@ def get_arrets_tram():
             WHERE r.route_type = 0
             ORDER BY route_name, stop_name;
         """
-    
+
     with get_connection() as conn:
         return pd.read_sql(query, conn)
-        

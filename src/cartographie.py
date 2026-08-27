@@ -2,6 +2,8 @@
 
 from src.connexion import get_connection
 
+from datetime import datetime
+
 
 def get_tables():
     """Liste les tables."""
@@ -18,22 +20,22 @@ def get_tables():
         return [row[0] for row in cursor.fetchall()]
 
 
-def get_colonnes(table):
-    """Liste les colonnes et les types d'une table."""
-    query = f"""
-            SELECT
-                column_name,
-                data_type,
-                is_nullable
-            FROM information_schema.columns
-            WHERE table_schema = 'public' 
-            AND table_name = '{table}'
-            ORDER BY table_name, ordinal_position;
-        """
+def get_colonnes():
+    """Liste les colonnes et les types de toutes les tables."""
+    query = """
+        SELECT
+            table_name,
+            column_name,
+            data_type,
+            is_nullable
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        ORDER BY table_name, ordinal_position;
+    """
 
     with get_connection() as conn, conn.cursor() as cursor:
         cursor.execute(query)
-        return [row for row in cursor.fetchall()]
+        return cursor.fetchall()
 
 
 def get_nombre_des_lignes(table):
@@ -62,10 +64,11 @@ def get_nombre_des_valeurs_nulles(table, colonne):
         cursor.execute(query)
         return cursor.fetchone()[0]
 
+
 def get_nombre_des_doublons(table, colonnes):
     """Nombre des doublons."""
     colonnes_sql = ", ".join(colonnes)
-    
+
     query = f"""
             SELECT COUNT(*)
             FROM (
@@ -75,32 +78,32 @@ def get_nombre_des_doublons(table, colonnes):
                 HAVING COUNT(*) > 1
             ) AS doublons;
         """
-    
+
     with get_connection() as conn, conn.cursor() as cursor:
         cursor.execute(query)
         return cursor.fetchone()[0]
 
+
 def tables_dict():
-    """Les infos des tables qui seront utiisées pour créer un fichier de cartographie."""
+    """Retourne les informations des tables pour la cartographie."""
     tables = {}
-    tables_names = get_tables()
-    for name in tables_names:
-        colonnes = get_colonnes(name)
-        tables[name] = colonnes
+
+    for table, column, data_type, is_nullable in get_colonnes():
+        tables.setdefault(table, []).append((column, data_type, is_nullable))
 
     return tables
 
 
-def id_check():
-    """Doc."""
-    query = """
-            SELECT
-                COUNT(*) AS total,
-                COUNT(DISTINCT stop_id) AS distinct_ids
-            FROM stops;
-        """
-    with get_connection() as conn, conn.cursor() as cursor:
-            cursor.execute(query)
-            return [row for row in cursor.fetchall()]
-    
-#print(id_check())
+def colonnes_to_dict():
+    """Retourne les informations sur les colonnes."""
+    colonnes = []
+
+    for table, column, data_type, is_nullable in get_colonnes():
+        colonnes.append(
+            {"name": column, "type": data_type, "is_nullable": is_nullable, "table": table}
+        )
+
+    return {"colonnes": colonnes, "extracted_at": datetime.now().strftime("%d/%m/%Y à %H:%M:%S")}
+
+
+# print(tables_dict())

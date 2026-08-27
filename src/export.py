@@ -1,24 +1,17 @@
 """Export d'un fichier tables.md, un fichier CSV et un fichier Parquet pour le jeux des données."""
 
-from pathlib import Path
 from textwrap import dedent
 
 from src.cartographie import (
+    colonnes_to_dict,
     get_nombre_des_doublons,
     get_nombre_des_lignes,
     get_nombre_des_valeurs_nulles,
     tables_dict,
 )
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-DOC_DIR = ROOT_DIR / "docs"
 
-DOC_DIR.mkdir(exist_ok=True)
-
-file_path = DOC_DIR / "cartographie_donnees.md"
-
-
-def export_tables_cartoghraphie():
+def export_tables_cartoghraphie(file_path):
     """Exporter un fichier.md."""
     tables = tables_dict()
     roles = {
@@ -66,8 +59,7 @@ def export_tables_cartoghraphie():
             peuvent être valides et ne doivent donc pas être considérés automatiquement 
             comme aberrants.
             """
-    
-    
+
     with open(file_path, "w", encoding="utf-8") as file:
         file.write("# Cartographie des données\n\n")
 
@@ -75,14 +67,14 @@ def export_tables_cartoghraphie():
             # Calcul du volume
             nb_rows = get_nombre_des_lignes(table)
             columns_names = [row[0] for row in columns]
-            
+
             file.write(f"## Table `{table}`\n\n")
 
             role = roles.get(table, "Description non renseignée.")
             file.write(f"**Rôle :** {role}\n\n")
 
             file.write(f"**Volume :** {nb_rows} lignes\n\n")
-            
+
             if table in ("agency", "calendar", "calendar_dates", "stops"):
                 columns_names = columns_names[1:]
             nb_doublons = get_nombre_des_doublons(table, columns_names)
@@ -109,5 +101,38 @@ def export_csv(df, filename):
 def export_parquet(df, filename):
     """Génère un fichier Parquet."""
     df.to_parquet(filename, index=False)
-    
-export_tables_cartoghraphie()
+
+
+def colonnes_to_markdown(data):
+    """Transforme le dictionnaire des colonnes en Markdown."""
+    lines = []
+
+    lines.append("# Dictionnaire de données")
+    lines.append("")
+    lines.append(f"**Date d'extraction :** {data['extracted_at']}")
+    lines.append("")
+    lines.append("| Table | Colonne | Type | Nullable | Unité / domaine de valeurs | Source |")
+    lines.append("|---|---|---|---|---|---|")
+    for colonne in data["colonnes"]:
+        lines.append(
+            f"| `{colonne['table']}` "
+            f"| `{colonne['name']}` "
+            f"| `{colonne['type']}` "
+            f"| {colonne['is_nullable']} "
+            f"| À documenter "
+            f"| GTFS:Scalingo:PostgreSQL |"
+        )
+
+    return "\n".join(lines)
+
+
+def export_dictionnaire(filename):
+    """Génère le dictionnaire de données au format Markdown."""
+    data = colonnes_to_dict()
+    markdown = colonnes_to_markdown(data)
+
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(markdown)
+
+
+# export_tables_cartoghraphie()
